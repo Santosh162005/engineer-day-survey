@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineer Day Survey - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .nav-links {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .nav-link {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 0 10px;
+            transition: background 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: #45a049;
+        }
+
+        .admin-controls {
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .control-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px 10px;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .control-btn.export {
+            background: #28a745;
+        }
+
+        .control-btn.export:hover {
+            background: #1e7e34;
+        }
+
+        .control-btn.clear {
+            background: #dc3545;
+        }
+
+        .control-btn.clear:hover {
+            background: #c82333;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: white;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .submissions-container {
+            padding: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .submission-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .submission-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .submission-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .submission-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .meta-item {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .submission-description {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 10px;
+        }
+
+        .volunteer-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .no-submissions {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .no-submissions h3 {
+            margin-bottom: 10px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .admin-controls {
+                padding: 20px;
+            }
+            
+            .control-btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+            
+            .submissions-container {
+                padding: 20px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer" style="display: none;">
+        <header>
+            <h1>📊 Admin Dashboard</h1>
+            <p>Engineer Day Event Ideas Management</p>
+        </header>
+
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">← Back to Survey</a>
+            <a href="#" onclick="location.reload()" class="nav-link">🔄 Refresh Data</a>
+        </div>
+
+        <div class="admin-controls">
+            <button onclick="exportToCSV()" class="control-btn export">📥 Export to CSV</button>
+            <button onclick="printSubmissions()" class="control-btn">🖨️ Print/PDF</button>
+            <button onclick="clearAllData()" class="control-btn clear">🗑️ Clear All Data</button>
+        </div>
+
+        <div class="stats" id="statsContainer">
+            <div class="stat-card">
+                <div class="stat-number" id="totalSubmissions">0</div>
+                <div class="stat-label">Total Submissions</div>
+            </div>
+        </div>
+
+        <div class="submissions-container" id="submissionsContainer">
+            <div class="loading">Loading submissions...</div>
+        </div>
+    </div>
+
+    <!-- Login Form -->
+    <div class="container" id="loginContainer">
+        <header>
+            <h1>🔒 Admin Login</h1>
+            <p>Please enter admin credentials to access the dashboard</p>
+        </header>
+        
+        <div style="padding: 40px; max-width: 400px; margin: 0 auto;">
+            <form id="loginForm">
+                <div style="margin-bottom: 20px;">
+                    <label for="username" style="display: block; margin-bottom: 8px; font-weight: 600;">Username:</label>
+                    <input type="text" id="username" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px;">
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    <label for="password" style="display: block; margin-bottom: 8px; font-weight: 600;">Password:</label>
+                    <input type="password" id="password" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px;">
+                </div>
+                
+                <button type="submit" style="width: 100%; background: #007bff; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                    Login
+                </button>
+            </form>
+            
+            <div id="errorMessage" style="color: #dc3545; text-align: center; margin-top: 15px; display: none;">
+                Invalid username or password!
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="index.html" style="color: #007bff; text-decoration: none;">← Back to Survey</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            
+            // Handle login form
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleLogin();
+            });
+        });
+
+        function checkAuth() {
+            const isAuthenticated = sessionStorage.getItem('adminAuth') === 'true';
+            if (isAuthenticated) {
+                showDashboard();
+            } else {
+                showLogin();
+            }
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === 'admin' && password === '1000') {
+                sessionStorage.setItem('adminAuth', 'true');
+                showDashboard();
+            } else {
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('mainContainer').style.display = 'none';
+        }
+
+        function showDashboard() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
+            loadSubmissions();
+        }
+
+        function loadSubmissions() {
+            try {
+                const submissions = JSON.parse(localStorage.getItem('engineerDaySubmissions') || '[]');
+                displayStats(submissions);
+                displaySubmissions(submissions);
+            } catch (error) {
+                console.error('Error loading submissions:', error);
+                document.getElementById('submissionsContainer').innerHTML = 
+                    '<div class="no-submissions"><h3>Error loading data</h3><p>Please check browser console for details.</p></div>';
+            }
+        }
+
+        function displayStats(submissions) {
+            const totalSubmissions = submissions.length;
+            document.getElementById('totalSubmissions').textContent = totalSubmissions;
+        }
+
+        function displaySubmissions(submissions) {
+            const container = document.getElementById('submissionsContainer');
+            
+            if (submissions.length === 0) {
+                container.innerHTML = `
+                    <div class="no-submissions">
+                        <h3>No submissions yet</h3>
+                        <p>Survey submissions will appear here once people start submitting ideas.</p>
+                        <a href="index.html" class="nav-link" style="margin-top: 20px;">Go to Survey</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const submissionsHTML = submissions.map((submission, index) => `
+                <div class="submission-card">
+                    <div class="submission-title">${index + 1}. ${submission.eventTitle}</div>
+                    
+                    <div class="submission-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Name:</span> ${submission.name}
+                        </div>
+                        ${submission.email ? `
+                            <div class="meta-item">
+                                <span class="meta-label">Email:</span> ${submission.email}
+                            </div>
+                        ` : ''}
+                        <div class="meta-item">
+                            <span class="meta-label">Category:</span> ${submission.category}
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Duration:</span> ${submission.duration}
+                        </div>
+                        ${submission.participants ? `
+                            <div class="meta-item">
+                                <span class="meta-label">Participants:</span> ${submission.participants}
+                            </div>
+                        ` : ''}
+                        <div class="meta-item">
+                            <span class="meta-label">Submitted:</span> ${new Date(submission.timestamp).toLocaleDateString()}
+                        </div>
+                    </div>
+
+                    <div class="submission-description">
+                        <strong>Description:</strong><br>
+                        ${submission.description}
+                    </div>
+
+                    ${submission.resources ? `
+                        <div class="submission-description">
+                            <strong>Required Resources:</strong><br>
+                            ${submission.resources}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            container.innerHTML = submissionsHTML;
+        }
+
+        function exportToCSV() {
+            const submissions = JSON.parse(localStorage.getItem('engineerDaySubmissions') || '[]');
+            if (submissions.length === 0) {
+                alert('No submissions to export!');
+                return;
+            }
+            
+            const headers = ['Name', 'Email', 'Event Title', 'Description', 'Category', 'Duration', 'Participants', 'Resources', 'Submitted Date'];
+            
+            const csvContent = [
+                headers.join(','),
+                ...submissions.map(submission => [
+                    `"${submission.name}"`,
+                    `"${submission.email || ''}"`,
+                    `"${submission.eventTitle}"`,
+                    `"${submission.description.replace(/"/g, '""')}"`,
+                    `"${submission.category}"`,
+                    `"${submission.duration}"`,
+                    `"${submission.participants || ''}"`,
+                    `"${(submission.resources || '').replace(/"/g, '""')}"`,
+                    `"${new Date(submission.timestamp).toLocaleString()}"`
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `engineer-day-submissions-${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function printSubmissions() {
+            window.print();
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to delete ALL submissions? This cannot be undone!')) {
+                localStorage.removeItem('engineerDaySubmissions');
+                loadSubmissions();
+                alert('All data has been cleared.');
+            }
+        }
+    </script>
+</body>
+</html>
